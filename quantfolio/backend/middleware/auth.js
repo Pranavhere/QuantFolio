@@ -1,5 +1,9 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/user.model');
+const mockData = require('../controllers/mock.controller');
+
+// Check if we're in development mode without MongoDB
+const useMockData = process.env.NODE_ENV === 'development' && process.env.MONGO_REQUIRED !== 'true';
 
 // Protect routes
 exports.protect = async (req, res, next) => {
@@ -22,6 +26,14 @@ exports.protect = async (req, res, next) => {
   }
 
   try {
+    // For mock data in development mode
+    if (useMockData && token.startsWith('mock-token-')) {
+      // In mock mode, use the first user
+      req.user = { id: mockData.users[0]._id };
+      next();
+      return;
+    }
+
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 

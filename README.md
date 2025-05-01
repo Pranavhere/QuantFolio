@@ -36,19 +36,19 @@ The system uses a dual-backend architecture:
 
 2. Set up the Node.js backend:
    ```
-   cd ai-portfolio-system/backend
+   cd quantfolio/backend
    npm install
    ```
 
 3. Set up the Python backend:
    ```
-   cd ai-portfolio-system/backend
+   cd quantfolio/backend
    pip install -r requirements.txt
    ```
 
 4. Set up the React frontend:
    ```
-   cd ai-portfolio-system/frontend
+   cd quantfolio/frontend
    npm install
    ```
 
@@ -56,19 +56,19 @@ The system uses a dual-backend architecture:
 
 1. Start the Node.js backend:
    ```
-   cd ai-portfolio-system/backend
+   cd quantfolio/backend
    npm run dev
    ```
 
 2. Start the Python backend:
    ```
-   cd ai-portfolio-system/backend
+   cd quantfolio/backend
    python -m uvicorn app.main:app --reload
    ```
 
 3. Start the frontend:
    ```
-   cd ai-portfolio-system/frontend
+   cd quantfolio/frontend
    npm start
    ```
 

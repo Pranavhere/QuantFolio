@@ -436,7 +436,7 @@ const Dashboard = () => {
             
             <Grid container spacing={2} sx={{ mb: 3 }}>
               {/* Market indices */}
-              {marketSummary && marketSummary.market_indices.slice(0, 3).map((index) => (
+              {marketSummary && marketSummary.market_indices && marketSummary.market_indices.slice(0, 3).map((index) => (
                 <Grid item xs={12} sm={4} key={index.symbol}>
                   <Card variant="outlined">
                     <CardContent sx={{ py: 1.5 }}>

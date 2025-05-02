@@ -39,7 +39,12 @@ const PortfolioList = () => {
     try {
       setLoading(true);
       const response = await portfolioAPI.getPortfolios();
-      setPortfolios(response.data);
+      if (response.data && response.data.data) {
+        setPortfolios(response.data.data);
+      } else {
+        console.error('Unexpected API response format:', response);
+        setPortfolios([]);
+      }
       setLoading(false);
     } catch (err) {
       console.error('Error fetching portfolios:', err);
@@ -83,6 +88,8 @@ const PortfolioList = () => {
     );
   }
 
+  const portfolioList = Array.isArray(portfolios) ? portfolios : [];
+
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -98,7 +105,7 @@ const PortfolioList = () => {
         </Button>
       </Box>
 
-      {portfolios.length === 0 ? (
+      {portfolioList.length === 0 ? (
         <Paper sx={{ p: 4, textAlign: 'center' }}>
           <Typography variant="h6" gutterBottom>
             You don't have any portfolios yet
@@ -116,8 +123,8 @@ const PortfolioList = () => {
         </Paper>
       ) : (
         <Grid container spacing={3}>
-          {portfolios.map((portfolio) => (
-            <Grid item xs={12} md={6} lg={4} key={portfolio.id}>
+          {portfolioList.map((portfolio) => (
+            <Grid item xs={12} md={6} lg={4} key={portfolio._id}>
               <Card variant="outlined">
                 <CardContent>
                   <Typography variant="h6" gutterBottom>
@@ -133,7 +140,10 @@ const PortfolioList = () => {
                         Total Value
                       </Typography>
                       <Typography variant="h6">
-                        {formatCurrency(portfolio.total_value)}
+                        {formatCurrency(portfolio.total_value || 
+                          (portfolio.assets ? portfolio.assets.reduce((sum, asset) => 
+                            sum + asset.quantity * asset.current_price, 0) : 0)
+                        )}
                       </Typography>
                     </Grid>
                     <Grid item xs={6}>
@@ -142,9 +152,9 @@ const PortfolioList = () => {
                       </Typography>
                       <Typography 
                         variant="h6" 
-                        color={portfolio.performance_1m >= 0 ? 'success.main' : 'error.main'}
+                        color={(portfolio.performance_1m || portfolio.performance?.monthly || 0) >= 0 ? 'success.main' : 'error.main'}
                       >
-                        {formatPercent(portfolio.performance_1m)}
+                        {formatPercent(portfolio.performance_1m || portfolio.performance?.monthly || 0)}
                       </Typography>
                     </Grid>
                   </Grid>
@@ -154,14 +164,14 @@ const PortfolioList = () => {
                   <Button 
                     size="small" 
                     startIcon={<VisibilityIcon />}
-                    onClick={() => navigate(`/portfolios/${portfolio.id}`)}
+                    onClick={() => navigate(`/portfolios/${portfolio._id}`)}
                   >
                     View
                   </Button>
                   <Button 
                     size="small" 
                     startIcon={<AnalyticsIcon />}
-                    onClick={() => navigate(`/analytics/${portfolio.id}`)}
+                    onClick={() => navigate(`/analytics/${portfolio._id}`)}
                   >
                     Analytics
                   </Button>

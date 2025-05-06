@@ -1,0 +1,9 @@
+confluent-kafka==2.3.0
+requests==2.31.0
+pandas==2.0.3
+numpy==1.24.4
+psycopg2==2.9.10
+python-dateutil==2.8.2
+matplotlib==3.7.2
+sqlalchemy==2.0.21
+pyyaml==6.0.1 

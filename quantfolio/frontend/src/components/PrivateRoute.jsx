@@ -12,6 +12,11 @@ const PrivateRoute = ({ component: Component }) => {
     return <div>Loading...</div>;
   }
 
+  // In development mode, always authenticate
+  if (process.env.NODE_ENV === 'development') {
+    return <Component />;
+  }
+
   // If not authenticated, redirect to login
   if (!isAuthenticated) {
     return <Navigate to="/auth/login" state={{ from: location }} replace />;

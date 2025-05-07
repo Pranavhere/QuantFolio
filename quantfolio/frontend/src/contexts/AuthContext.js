@@ -19,12 +19,12 @@ export const AuthProvider = ({ children }) => {
         try {
           setLoading(true);
           
-          // For development - fallback to demo token if needed
-          if (token === 'demo-token' && process.env.NODE_ENV === 'development') {
+          // Always use demo token in development mode
+          if (process.env.NODE_ENV === 'development') {
             console.log('Development mode: Using demo authentication');
             const mockUser = {
               id: 1,
-              name: 'Demo User',
+              full_name: 'Demo User',
               email: 'demo@example.com',
               created_at: new Date().toISOString(),
               stats: {
@@ -66,15 +66,15 @@ export const AuthProvider = ({ children }) => {
       setLoading(true);
       setError(null);
       
-      // Use development mode bypass if needed
-      if (process.env.NODE_ENV === 'development' && process.env.REACT_APP_USE_MOCK_AUTH === 'true') {
+      // Always accept login in development mode
+      if (process.env.NODE_ENV === 'development') {
         console.log('Development mode: Bypassing authentication');
         localStorage.setItem('token', 'demo-token');
         
         // Set mock user data
         const mockUser = {
           id: 1,
-          name: 'Demo User',
+          full_name: 'Demo User',
           email: email,
           created_at: new Date().toISOString(),
           stats: {

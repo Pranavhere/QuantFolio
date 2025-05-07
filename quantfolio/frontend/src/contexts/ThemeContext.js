@@ -7,6 +7,7 @@ import CssBaseline from '@mui/material/CssBaseline';
 import lightTheme from '../themes/light';
 import darkTheme from '../themes/dark';
 import modernTheme from '../themes/modern';
+import terminalTheme from '../themes/terminal';
 
 // Create context
 const ThemeContext = createContext();
@@ -16,15 +17,16 @@ const themeOptions = {
   light: lightTheme,
   dark: darkTheme,
   modern: modernTheme,
+  terminal: terminalTheme,
 };
 
 // Theme provider component
 export const ThemeProvider = ({ children }) => {
-  // Get saved theme from local storage or default to 'light'
-  const [themeName, setThemeName] = useState(localStorage.getItem('theme') || 'light');
+  // Get saved theme from local storage or default to 'terminal'
+  const [themeName, setThemeName] = useState(localStorage.getItem('theme') || 'terminal');
   
   // Get current theme object
-  const theme = themeOptions[themeName] || themeOptions.light;
+  const theme = themeOptions[themeName] || themeOptions.terminal;
   
   // Update local storage when theme changes
   useEffect(() => {
@@ -33,7 +35,7 @@ export const ThemeProvider = ({ children }) => {
   
   // Function to toggle between themes
   const toggleTheme = () => {
-    const nextTheme = themeName === 'light' ? 'dark' : themeName === 'dark' ? 'modern' : 'light';
+    const nextTheme = themeName === 'light' ? 'dark' : themeName === 'dark' ? 'modern' : themeName === 'modern' ? 'terminal' : 'light';
     setThemeName(nextTheme);
   };
   

@@ -17,11 +17,12 @@ export const AuthProvider = ({ children }) => {
       const token = localStorage.getItem('token');
       if (token) {
         const response = await authAPI.getProfile();
-        setUser(response.data.data);
+        setUser(response.data.data.user);
       }
     } catch (error) {
       console.error('Auth check failed:', error);
       localStorage.removeItem('token');
+      setUser(null);
     } finally {
       setLoading(false);
     }
@@ -36,8 +37,9 @@ export const AuthProvider = ({ children }) => {
       setUser(user);
       return user;
     } catch (error) {
-      setError(error.response?.data?.error || 'Login failed');
-      throw error;
+      const errorMessage = error.response?.data?.error || 'Login failed';
+      setError(errorMessage);
+      throw new Error(errorMessage);
     }
   };
 
@@ -50,8 +52,9 @@ export const AuthProvider = ({ children }) => {
       setUser(user);
       return user;
     } catch (error) {
-      setError(error.response?.data?.error || 'Registration failed');
-      throw error;
+      const errorMessage = error.response?.data?.error || 'Registration failed';
+      setError(errorMessage);
+      throw new Error(errorMessage);
     }
   };
 

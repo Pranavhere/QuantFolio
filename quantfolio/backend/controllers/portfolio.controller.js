@@ -1,211 +1,170 @@
 const Portfolio = require('../models/portfolio.model');
-const Asset = require('../models/asset.model');
-const Trade = require('../models/trade.model');
 
-// @desc    Get all portfolios for a user
-// @route   GET /api/portfolio
-// @access  Private
-exports.getPortfolios = async (req, res) => {
+exports.getAll = async (req, res) => {
   try {
-    const portfolios = await Portfolio.find({ user: req.user.id })
-      .populate('assets')
-      .sort('-createdAt');
-    
-    res.status(200).json({
-      success: true,
-      count: portfolios.length,
-      data: portfolios
+    const portfolios = await Portfolio.find({ user: req.user.userId });
+    res.json({
+      data: {
+        portfolios
+      }
     });
   } catch (error) {
+    console.error('Get portfolios error:', error);
     res.status(500).json({
-      success: false,
-      error: 'Server Error'
+      error: 'Error fetching portfolios'
     });
   }
 };
 
-// @desc    Get single portfolio
-// @route   GET /api/portfolio/:id
-// @access  Private
-exports.getPortfolio = async (req, res) => {
+exports.getOne = async (req, res) => {
   try {
     const portfolio = await Portfolio.findOne({
       _id: req.params.id,
-      user: req.user.id
-    }).populate('assets');
+      user: req.user.userId
+    });
 
     if (!portfolio) {
       return res.status(404).json({
-        success: false,
         error: 'Portfolio not found'
       });
     }
 
-    res.status(200).json({
-      success: true,
-      data: portfolio
+    res.json({
+      data: {
+        portfolio
+      }
     });
   } catch (error) {
+    console.error('Get portfolio error:', error);
     res.status(500).json({
-      success: false,
-      error: 'Server Error'
+      error: 'Error fetching portfolio'
     });
   }
 };
 
-// @desc    Create new portfolio
-// @route   POST /api/portfolio
-// @access  Private
-exports.createPortfolio = async (req, res) => {
+exports.create = async (req, res) => {
   try {
-    req.body.user = req.user.id;
-    const portfolio = await Portfolio.create(req.body);
+    const { name, description } = req.body;
+
+    const portfolio = new Portfolio({
+      name,
+      description,
+      user: req.user.userId,
+      assets: []
+    });
+
+    await portfolio.save();
 
     res.status(201).json({
-      success: true,
-      data: portfolio
+      data: {
+        portfolio
+      }
     });
   } catch (error) {
-    if (error.code === 11000) {
-      return res.status(400).json({
-        success: false,
-        error: 'Portfolio with this name already exists'
-      });
-    }
+    console.error('Create portfolio error:', error);
     res.status(500).json({
-      success: false,
-      error: 'Server Error'
+      error: 'Error creating portfolio'
     });
   }
 };
 
-// @desc    Update portfolio
-// @route   PUT /api/portfolio/:id
-// @access  Private
-exports.updatePortfolio = async (req, res) => {
+exports.update = async (req, res) => {
   try {
-    let portfolio = await Portfolio.findOne({
-      _id: req.params.id,
-      user: req.user.id
-    });
+    const { name, description } = req.body;
 
-    if (!portfolio) {
-      return res.status(404).json({
-        success: false,
-        error: 'Portfolio not found'
-      });
-    }
-
-    portfolio = await Portfolio.findByIdAndUpdate(
-      req.params.id,
-      req.body,
+    const portfolio = await Portfolio.findOneAndUpdate(
       {
-        new: true,
-        runValidators: true
-      }
+        _id: req.params.id,
+        user: req.user.userId
+      },
+      {
+        name,
+        description
+      },
+      { new: true }
     );
 
-    res.status(200).json({
-      success: true,
-      data: portfolio
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: 'Server Error'
-    });
-  }
-};
-
-// @desc    Delete portfolio
-// @route   DELETE /api/portfolio/:id
-// @access  Private
-exports.deletePortfolio = async (req, res) => {
-  try {
-    const portfolio = await Portfolio.findOne({
-      _id: req.params.id,
-      user: req.user.id
-    });
-
     if (!portfolio) {
       return res.status(404).json({
-        success: false,
         error: 'Portfolio not found'
       });
     }
 
-    // Delete all associated assets
-    await Asset.deleteMany({ portfolio: req.params.id });
-    
-    // Delete all associated trades
-    await Trade.deleteMany({ portfolio: req.params.id });
-
-    await portfolio.remove();
-
-    res.status(200).json({
-      success: true,
-      data: {}
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: 'Server Error'
-    });
-  }
-};
-
-// @desc    Get portfolio performance
-// @route   GET /api/portfolio/:id/performance
-// @access  Private
-exports.getPortfolioPerformance = async (req, res) => {
-  try {
-    const portfolio = await Portfolio.findOne({
-      _id: req.params.id,
-      user: req.user.id
-    }).populate('assets');
-
-    if (!portfolio) {
-      return res.status(404).json({
-        success: false,
-        error: 'Portfolio not found'
-      });
-    }
-
-    await portfolio.calculatePerformance();
-
-    res.status(200).json({
-      success: true,
+    res.json({
       data: {
-        currentBalance: portfolio.currentBalance,
-        performance: portfolio.performance
+        portfolio
       }
     });
   } catch (error) {
+    console.error('Update portfolio error:', error);
     res.status(500).json({
-      success: false,
-      error: 'Server Error'
+      error: 'Error updating portfolio'
     });
   }
 };
 
-// @desc    Get portfolio assets
-// @route   GET /api/portfolio/:id/assets
-// @access  Private
-exports.getPortfolioAssets = async (req, res) => {
+exports.delete = async (req, res) => {
   try {
-    const assets = await Asset.find({
-      portfolio: req.params.id
-    }).populate('trades');
+    const portfolio = await Portfolio.findOneAndDelete({
+      _id: req.params.id,
+      user: req.user.userId
+    });
 
-    res.status(200).json({
-      success: true,
-      count: assets.length,
-      data: assets
+    if (!portfolio) {
+      return res.status(404).json({
+        error: 'Portfolio not found'
+      });
+    }
+
+    res.json({
+      message: 'Portfolio deleted successfully'
     });
   } catch (error) {
+    console.error('Delete portfolio error:', error);
     res.status(500).json({
-      success: false,
-      error: 'Server Error'
+      error: 'Error deleting portfolio'
     });
   }
-}; 
+};
+
+exports.getPerformance = async (req, res) => {
+  try {
+    const portfolio = await Portfolio.findOne({
+      _id: req.params.id,
+      user: req.user.userId
+    });
+
+    if (!portfolio) {
+      return res.status(404).json({
+        error: 'Portfolio not found'
+      });
+    }
+
+    // Calculate portfolio performance
+    const totalValue = portfolio.assets.reduce((sum, asset) => {
+      return sum + (asset.quantity * asset.currentPrice);
+    }, 0);
+
+    const totalCost = portfolio.assets.reduce((sum, asset) => {
+      return sum + (asset.quantity * asset.averagePrice);
+    }, 0);
+
+    const performance = {
+      totalValue,
+      totalCost,
+      profitLoss: totalValue - totalCost,
+      profitLossPercentage: ((totalValue - totalCost) / totalCost) * 100
+    };
+
+    res.json({
+      data: {
+        performance
+      }
+    });
+  } catch (error) {
+    console.error('Get performance error:', error);
+    res.status(500).json({
+      error: 'Error calculating performance'
+    });
+  }
+};

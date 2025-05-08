@@ -1,35 +1,35 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
-  Box,
+  Container,
+  Typography,
+  Button,
+  Grid,
   Card,
   CardContent,
-  Typography,
-  Grid,
-  Button,
-  IconButton,
+  CardActions,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   TextField,
+  IconButton,
+  Box,
+  CircularProgress
 } from '@mui/material';
-import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
-import { portfolioAPI } from '../../services/api';
+import { Add as AddIcon, Delete as DeleteIcon, Edit as EditIcon } from '@mui/icons-material';
+import { portfolioAPI } from '../services/api';
 
 const PortfolioList = () => {
-  const [portfolios, setPortfolios] = useState([]);
-  const [openDialog, setOpenDialog] = useState(false);
-  const [newPortfolio, setNewPortfolio] = useState({
-    name: '',
-    description: '',
-    type: 'stock',
-    initialBalance: 0,
-    riskLevel: 'medium',
-    strategy: 'passive'
-  });
-
   const navigate = useNavigate();
+  const [portfolios, setPortfolios] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    description: ''
+  });
 
   useEffect(() => {
     fetchPortfolios();
@@ -37,44 +37,53 @@ const PortfolioList = () => {
 
   const fetchPortfolios = async () => {
     try {
+      setLoading(true);
       const response = await portfolioAPI.getAll();
-      setPortfolios(response.data.data);
+      setPortfolios(response.data.data.portfolios);
     } catch (error) {
-      console.error('Error fetching portfolios:', error);
+      setError('Error fetching portfolios');
+      console.error('Fetch portfolios error:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleCreatePortfolio = async () => {
     try {
-      await portfolioAPI.create(newPortfolio);
+      const response = await portfolioAPI.create(formData);
+      setPortfolios([...portfolios, response.data.data.portfolio]);
       setOpenDialog(false);
-      fetchPortfolios();
-      setNewPortfolio({
-        name: '',
-        description: '',
-        type: 'stock',
-        initialBalance: 0,
-        riskLevel: 'medium',
-        strategy: 'passive'
-      });
+      setFormData({ name: '', description: '' });
     } catch (error) {
-      console.error('Error creating portfolio:', error);
+      setError('Error creating portfolio');
+      console.error('Create portfolio error:', error);
     }
   };
 
   const handleDeletePortfolio = async (id) => {
     try {
       await portfolioAPI.delete(id);
-      fetchPortfolios();
+      setPortfolios(portfolios.filter(p => p._id !== id));
     } catch (error) {
-      console.error('Error deleting portfolio:', error);
+      setError('Error deleting portfolio');
+      console.error('Delete portfolio error:', error);
     }
   };
 
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
+        <CircularProgress />
+      </Box>
+    );
+  }
+
   return (
-    <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-        <Typography variant="h4">My Portfolios</Typography>
+    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
+        <Typography variant="h4" component="h1">
+          My Portfolios
+        </Typography>
         <Button
           variant="contained"
           startIcon={<AddIcon />}
@@ -84,35 +93,41 @@ const PortfolioList = () => {
         </Button>
       </Box>
 
+      {error && (
+        <Typography color="error" mb={2}>
+          {error}
+        </Typography>
+      )}
+
       <Grid container spacing={3}>
         {portfolios.map((portfolio) => (
-          <Grid item xs={12} md={6} lg={4} key={portfolio._id}>
+          <Grid item xs={12} sm={6} md={4} key={portfolio._id}>
             <Card>
               <CardContent>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Typography variant="h6">{portfolio.name}</Typography>
-                  <Box>
-                    <IconButton onClick={() => navigate(`/portfolio/${portfolio._id}`)}>
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton onClick={() => handleDeletePortfolio(portfolio._id)}>
-                      <DeleteIcon />
-                    </IconButton>
-                  </Box>
-                </Box>
+                <Typography variant="h6" component="h2">
+                  {portfolio.name}
+                </Typography>
                 <Typography color="textSecondary" gutterBottom>
                   {portfolio.description}
                 </Typography>
                 <Typography variant="body2">
-                  Type: {portfolio.type}
-                </Typography>
-                <Typography variant="body2">
-                  Balance: ${portfolio.currentBalance.toFixed(2)}
-                </Typography>
-                <Typography variant="body2">
-                  Performance: {portfolio.performance.allTime.toFixed(2)}%
+                  Assets: {portfolio.assets.length}
                 </Typography>
               </CardContent>
+              <CardActions>
+                <Button
+                  size="small"
+                  onClick={() => navigate(`/portfolios/${portfolio._id}`)}
+                >
+                  View Details
+                </Button>
+                <IconButton
+                  size="small"
+                  onClick={() => handleDeletePortfolio(portfolio._id)}
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </CardActions>
             </Card>
           </Grid>
         ))}
@@ -126,25 +141,17 @@ const PortfolioList = () => {
             margin="dense"
             label="Portfolio Name"
             fullWidth
-            value={newPortfolio.name}
-            onChange={(e) => setNewPortfolio({ ...newPortfolio, name: e.target.value })}
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
           />
           <TextField
             margin="dense"
             label="Description"
             fullWidth
             multiline
-            rows={2}
-            value={newPortfolio.description}
-            onChange={(e) => setNewPortfolio({ ...newPortfolio, description: e.target.value })}
-          />
-          <TextField
-            margin="dense"
-            label="Initial Balance"
-            type="number"
-            fullWidth
-            value={newPortfolio.initialBalance}
-            onChange={(e) => setNewPortfolio({ ...newPortfolio, initialBalance: Number(e.target.value) })}
+            rows={4}
+            value={formData.description}
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
           />
         </DialogContent>
         <DialogActions>
@@ -154,8 +161,8 @@ const PortfolioList = () => {
           </Button>
         </DialogActions>
       </Dialog>
-    </Box>
+    </Container>
   );
 };
 
-export default PortfolioList; 
+export default PortfolioList;

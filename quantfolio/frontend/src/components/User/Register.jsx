@@ -124,11 +124,11 @@ const Register = () => {
       setLoading(true);
       setError('');
       await register({
-        email,
-        password,
-        full_name: fullName,
-      });
-      navigate('/auth/login');
+      email,
+      password,
+      full_name: fullName,
+    });
+        navigate('/auth/login');
     } catch (error) {
       setError(error.response?.data?.error || 'Registration failed');
     } finally {
@@ -324,7 +324,7 @@ const Register = () => {
           >
             Sign In
           </Typography>
-        </Typography>
+      </Typography>
       </Box>
     </Box>
   );

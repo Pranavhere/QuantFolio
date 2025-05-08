@@ -2,7 +2,7 @@
 87
 __consumer_offsets 43 0
 connect-offsets 4 0
-__consumer_offsets 30 22
+__consumer_offsets 30 23
 technical-indicators 0 0
 __consumer_offsets 32 0
 __consumer_offsets 25 0
@@ -33,7 +33,7 @@ market-data 0 0
 connect-offsets 1 0
 connect-offsets 10 0
 __consumer_offsets 23 0
-connect-configs 0 3
+connect-configs 0 4
 __consumer_offsets 42 0
 __consumer_offsets 28 0
 __consumer_offsets 4 0

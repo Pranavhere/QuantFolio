@@ -1,30 +1,57 @@
 import React from 'react';
-import { BrowserRouter, useRoutes } from 'react-router-dom';
-
-// Import theme provider
-import { ThemeProvider } from './contexts/ThemeContext';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { ThemeProvider } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
 import { AuthProvider } from './contexts/AuthContext';
+import theme from './theme';
 
-// Import routes
-import routes from './routes';
+// Layout
+import Layout from './components/Layout';
 
-// Router component
-const Router = () => {
-  const routing = useRoutes(routes);
-  return routing;
-};
+// Pages
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Dashboard from './pages/Dashboard';
+import PortfolioList from './pages/PortfolioList';
+import PortfolioDetail from './pages/PortfolioDetail';
+import NotFound from './pages/NotFound';
 
-// Main App component
-const App = () => {
+// Protected Route
+import ProtectedRoute from './components/ProtectedRoute';
+
+function App() {
   return (
-    <ThemeProvider>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
       <AuthProvider>
-        <BrowserRouter>
-          <Router />
-        </BrowserRouter>
+        <Router>
+          <Routes>
+            {/* Public routes */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+
+            {/* Protected routes */}
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <Layout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<Navigate to="/dashboard" replace />} />
+              <Route path="dashboard" element={<Dashboard />} />
+              <Route path="portfolios" element={<PortfolioList />} />
+              <Route path="portfolios/:id" element={<PortfolioDetail />} />
+            </Route>
+
+            {/* 404 route */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Router>
       </AuthProvider>
     </ThemeProvider>
   );
-};
+}
 
 export default App; 

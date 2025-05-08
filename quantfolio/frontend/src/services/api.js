@@ -35,42 +35,42 @@ api.interceptors.response.use(
   }
 );
 
-// Portfolio API
-export const portfolioAPI = {
-  getAll: () => api.get('/portfolio'),
-  getOne: (id) => api.get(`/portfolio/${id}`),
-  create: (data) => api.post('/portfolio', data),
-  update: (id, data) => api.put(`/portfolio/${id}`, data),
-  delete: (id) => api.delete(`/portfolio/${id}`),
-  getPerformance: (id) => api.get(`/portfolio/${id}/performance`),
-  getAssets: (id) => api.get(`/portfolio/${id}/assets`),
-};
-
-// Asset API
-export const assetAPI = {
-  getAll: (portfolioId) => api.get(`/portfolio/${portfolioId}/assets`),
-  getOne: (portfolioId, id) => api.get(`/portfolio/${portfolioId}/assets/${id}`),
-  add: (portfolioId, data) => api.post(`/portfolio/${portfolioId}/assets`, data),
-  update: (portfolioId, id, data) => api.put(`/portfolio/${portfolioId}/assets/${id}`, data),
-  remove: (portfolioId, id) => api.delete(`/portfolio/${portfolioId}/assets/${id}`),
-  updatePrices: (portfolioId, updates) => api.put(`/portfolio/${portfolioId}/assets/update-prices`, { updates }),
-};
-
-// Trade API
-export const tradeAPI = {
-  getAll: (portfolioId) => api.get(`/portfolio/${portfolioId}/trades`),
-  getOne: (portfolioId, id) => api.get(`/portfolio/${portfolioId}/trades/${id}`),
-  create: (portfolioId, data) => api.post(`/portfolio/${portfolioId}/trades`, data),
-  update: (portfolioId, id, data) => api.put(`/portfolio/${portfolioId}/trades/${id}`, data),
-  delete: (portfolioId, id) => api.delete(`/portfolio/${portfolioId}/trades/${id}`),
-};
-
 // Auth API
 export const authAPI = {
   login: (credentials) => api.post('/auth/login', credentials),
   register: (userData) => api.post('/auth/register', userData),
   logout: () => api.post('/auth/logout'),
   getProfile: () => api.get('/auth/profile'),
+};
+
+// Portfolio API
+export const portfolioAPI = {
+  getAll: () => api.get('/portfolios'),
+  getOne: (id) => api.get(`/portfolios/${id}`),
+  create: (data) => api.post('/portfolios', data),
+  update: (id, data) => api.put(`/portfolios/${id}`, data),
+  delete: (id) => api.delete(`/portfolios/${id}`),
+  getPerformance: (id) => api.get(`/portfolios/${id}/performance`),
+  getAssets: (id) => api.get(`/portfolios/${id}/assets`),
+};
+
+// Asset API
+export const assetAPI = {
+  getAll: (portfolioId) => api.get(`/portfolios/${portfolioId}/assets`),
+  getOne: (portfolioId, id) => api.get(`/portfolios/${portfolioId}/assets/${id}`),
+  add: (portfolioId, data) => api.post(`/portfolios/${portfolioId}/assets`, data),
+  update: (portfolioId, id, data) => api.put(`/portfolios/${portfolioId}/assets/${id}`, data),
+  remove: (portfolioId, id) => api.delete(`/portfolios/${portfolioId}/assets/${id}`),
+  updatePrices: (portfolioId, updates) => api.put(`/portfolios/${portfolioId}/assets/update-prices`, { updates }),
+};
+
+// Trade API
+export const tradeAPI = {
+  getAll: (portfolioId) => api.get(`/portfolios/${portfolioId}/trades`),
+  getOne: (portfolioId, id) => api.get(`/portfolios/${portfolioId}/trades/${id}`),
+  create: (portfolioId, data) => api.post(`/portfolios/${portfolioId}/trades`, data),
+  update: (portfolioId, id, data) => api.put(`/portfolios/${portfolioId}/trades/${id}`, data),
+  delete: (portfolioId, id) => api.delete(`/portfolios/${portfolioId}/trades/${id}`),
 };
 
 // Market Data API

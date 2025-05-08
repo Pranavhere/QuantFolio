@@ -190,13 +190,13 @@ const Login = () => {
       <Box textAlign="center">
         <Typography variant="body2">
           Don't have an account?{' '}
-          <Typography
+        <Typography
             component="span"
-            variant="body2"
-            color="primary"
-            sx={{ cursor: 'pointer', textDecoration: 'underline' }}
+          variant="body2"
+          color="primary"
+          sx={{ cursor: 'pointer', textDecoration: 'underline' }}
             onClick={() => navigate('/auth/register')}
-          >
+        >
             Sign Up
           </Typography>
         </Typography>

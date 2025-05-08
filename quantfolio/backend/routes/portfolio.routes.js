@@ -1,34 +1,31 @@
 const express = require('express');
+const router = express.Router();
 const {
   getPortfolios,
-  getPortfolioById,
+  getPortfolio,
   createPortfolio,
   updatePortfolio,
   deletePortfolio,
-  addAsset,
-  removeAsset
+  getPortfolioPerformance,
+  getPortfolioAssets
 } = require('../controllers/portfolio.controller');
-
-const router = express.Router();
 
 const { protect } = require('../middleware/auth');
 
-// All routes are protected
+// Protect all routes
 router.use(protect);
 
+// Portfolio routes
 router.route('/')
   .get(getPortfolios)
   .post(createPortfolio);
 
 router.route('/:id')
-  .get(getPortfolioById)
+  .get(getPortfolio)
   .put(updatePortfolio)
   .delete(deletePortfolio);
 
-router.route('/:id/assets')
-  .post(addAsset);
-
-router.route('/:id/assets/:symbol')
-  .delete(removeAsset);
+router.get('/:id/performance', getPortfolioPerformance);
+router.get('/:id/assets', getPortfolioAssets);
 
 module.exports = router; 

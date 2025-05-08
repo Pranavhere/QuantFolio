@@ -11,8 +11,8 @@ import Register from './components/User/Register';
 
 // Main app pages
 import Dashboard from './components/Dashboard/Dashboard';
-import PortfolioList from './components/Dashboard/PortfolioList';
-import PortfolioDetail from './components/Dashboard/PortfolioDetail';
+import PortfolioList from './components/Portfolio/PortfolioList';
+import PortfolioDetail from './components/Portfolio/PortfolioDetail';
 import TradingInterface from './components/Trading/TradingInterface';
 import OrderHistory from './components/Trading/OrderHistory';
 import TradeHistory from './components/Trading/TradeHistory';
@@ -40,8 +40,8 @@ const routes = [
     element: <PrivateRoute component={MainLayout} />,
     children: [
       { path: 'dashboard', element: <Dashboard /> },
-      { path: 'portfolios', element: <PortfolioList /> },
-      { path: 'portfolios/:id', element: <PortfolioDetail /> },
+      { path: 'portfolios', element: <PrivateRoute><PortfolioList /></PrivateRoute> },
+      { path: 'portfolios/:id', element: <PrivateRoute><PortfolioDetail /></PrivateRoute> },
       { path: 'trading', element: <TradingInterface /> },
       { path: 'orders', element: <OrderHistory /> },
       { path: 'trades', element: <TradeHistory /> },

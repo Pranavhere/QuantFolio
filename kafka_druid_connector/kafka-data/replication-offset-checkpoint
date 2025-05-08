@@ -1,8 +1,9 @@
 0
-82
+87
 __consumer_offsets 43 0
 connect-offsets 4 0
-__consumer_offsets 30 7
+__consumer_offsets 30 22
+technical-indicators 0 0
 __consumer_offsets 32 0
 __consumer_offsets 25 0
 __consumer_offsets 41 0
@@ -23,21 +24,23 @@ __consumer_offsets 10 0
 __consumer_offsets 11 0
 connect-status 0 0
 connect-offsets 16 0
+trade-signals 0 0
 __consumer_offsets 20 0
-__consumer_offsets 18 0
+__consumer_offsets 18 12
 connect-offsets 7 0
 __consumer_offsets 48 0
+market-data 0 0
 connect-offsets 1 0
 connect-offsets 10 0
 __consumer_offsets 23 0
-connect-configs 0 1
+connect-configs 0 3
 __consumer_offsets 42 0
 __consumer_offsets 28 0
 __consumer_offsets 4 0
 connect-offsets 6 0
 connect-offsets 13 0
 __consumer_offsets 1 0
-__consumer_offsets 38 8
+__consumer_offsets 38 17
 connect-status 2 0
 __consumer_offsets 14 0
 __consumer_offsets 29 0
@@ -50,11 +53,12 @@ __consumer_offsets 21 0
 __consumer_offsets 19 0
 __consumer_offsets 6 0
 __consumer_offsets 33 0
-stock_market_data 0 940
+stock_market_data 0 1540
 __consumer_offsets 37 0
 __consumer_offsets 8 0
 __consumer_offsets 24 0
 connect-status 1 0
+nse-market-data 0 0
 __consumer_offsets 3 0
 __consumer_offsets 17 0
 connect-offsets 21 0
@@ -72,6 +76,7 @@ connect-offsets 24 0
 connect-offsets 17 0
 __consumer_offsets 22 0
 connect-offsets 15 0
+portfolio-updates 0 0
 __consumer_offsets 46 0
 connect-offsets 20 0
 __consumer_offsets 31 0

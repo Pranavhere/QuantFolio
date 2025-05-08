@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 # TimescaleDB Configuration
 TIMESCALE_HOST = 'localhost'
-TIMESCALE_PORT = '5432'
+TIMESCALE_PORT = '5433'
 TIMESCALE_USER = 'postgres'
 TIMESCALE_PASSWORD = 'password'
 TIMESCALE_DB = 'stock_data'

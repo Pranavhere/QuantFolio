@@ -22,6 +22,7 @@ import {
   useTheme,
   Tab,
   Tabs,
+  Tooltip,
 } from '@mui/material';
 import {
   TrendingUp as TrendingUpIcon,
@@ -30,30 +31,35 @@ import {
   Refresh as RefreshIcon,
   ArrowForward as ArrowForwardIcon,
   Article as NewsIcon,
+  SignalCellularAlt as SignalIcon,
 } from '@mui/icons-material';
-import { Bar } from 'react-chartjs-2';
+import { Bar, Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
+  PointElement,
+  LineElement,
   BarElement,
   Title,
-  Tooltip,
+  Tooltip as ChartTooltip,
   Legend,
 } from 'chart.js';
+import axios from 'axios';
 
 // Register ChartJS components
 ChartJS.register(
   CategoryScale,
   LinearScale,
+  PointElement,
+  LineElement,
   BarElement,
   Title,
-  Tooltip,
+  ChartTooltip,
   Legend
 );
 
-// Import API
-import { dataAPI } from '../../api/api';
+const API_BASE_URL = 'http://localhost:8000/api';
 
 const MarketOverview = () => {
   const navigate = useNavigate();
@@ -64,6 +70,8 @@ const MarketOverview = () => {
   const [marketData, setMarketData] = useState(null);
   const [error, setError] = useState(null);
   const [tabValue, setTabValue] = useState(0);
+  const [selectedSymbol, setSelectedSymbol] = useState(null);
+  const [technicalSignals, setTechnicalSignals] = useState(null);
   
   // Fetch market data
   useEffect(() => {
@@ -71,19 +79,43 @@ const MarketOverview = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   
+  // Fetch technical signals when a symbol is selected
+  useEffect(() => {
+    if (selectedSymbol) {
+      fetchTechnicalSignals(selectedSymbol);
+    }
+  }, [selectedSymbol]);
+  
   const fetchData = async () => {
     try {
       setLoading(true);
       setError(null);
       
-      const response = await dataAPI.getMarketSummary();
-      setMarketData(response.data);
+      const [marketSummary, symbols] = await Promise.all([
+        axios.get(`${API_BASE_URL}/market-summary`),
+        axios.get(`${API_BASE_URL}/symbols`)
+      ]);
+      
+      setMarketData({
+        market_summary: marketSummary.data,
+        symbols: symbols.data,
+        timestamp: new Date().toISOString()
+      });
       
       setLoading(false);
     } catch (err) {
       console.error('Error fetching market data:', err);
       setError('Failed to load market data. Please try again.');
       setLoading(false);
+    }
+  };
+  
+  const fetchTechnicalSignals = async (symbol) => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/signals/${symbol}`);
+      setTechnicalSignals(response.data);
+    } catch (err) {
+      console.error('Error fetching technical signals:', err);
     }
   };
   
@@ -123,7 +155,7 @@ const MarketOverview = () => {
   
   // Generate chart data
   const getMarketChartData = () => {
-    if (!marketData || !marketData.market_indices) {
+    if (!marketData || !marketData.market_summary) {
       return {
         labels: [],
         datasets: [],
@@ -131,14 +163,39 @@ const MarketOverview = () => {
     }
     
     return {
-      labels: marketData.market_indices.map(index => index.symbol),
+      labels: marketData.market_summary.map(stock => stock.symbol),
       datasets: [
         {
-          label: 'Change Percent',
-          data: marketData.market_indices.map(index => index.change_percent),
-          backgroundColor: marketData.market_indices.map(index => 
-            index.change_percent >= 0 ? theme.palette.success.main : theme.palette.error.main
-          ),
+          label: 'Price Range',
+          data: marketData.market_summary.map(stock => stock.price_range),
+          backgroundColor: theme.palette.primary.main,
+        },
+      ],
+    };
+  };
+  
+  const getTechnicalChartData = () => {
+    if (!technicalSignals) {
+      return {
+        labels: [],
+        datasets: [],
+      };
+    }
+    
+    return {
+      labels: ['RSI', 'MACD', 'MA', 'Bollinger', 'ADX', 'Stochastic'],
+      datasets: [
+        {
+          label: 'Signal Strength',
+          data: [
+            technicalSignals.rsi_signal === 'overbought' ? 1 : technicalSignals.rsi_signal === 'oversold' ? -1 : 0,
+            technicalSignals.macd_signal === 'bullish' ? 1 : technicalSignals.macd_signal === 'bearish' ? -1 : 0,
+            technicalSignals.ma_signal === 'golden_cross' ? 1 : technicalSignals.ma_signal === 'death_cross' ? -1 : 0,
+            technicalSignals.bollinger_signal === 'upper_break' ? 1 : technicalSignals.bollinger_signal === 'lower_break' ? -1 : 0,
+            technicalSignals.trend_direction === 'bullish' ? 1 : technicalSignals.trend_direction === 'bearish' ? -1 : 0,
+            technicalSignals.stoch_signal === 'overbought' ? 1 : technicalSignals.stoch_signal === 'oversold' ? -1 : 0,
+          ],
+          backgroundColor: theme.palette.secondary.main,
         },
       ],
     };
@@ -154,7 +211,7 @@ const MarketOverview = () => {
       tooltip: {
         callbacks: {
           label: function(context) {
-            return formatPercent(context.parsed.y);
+            return formatCurrency(context.parsed.y);
           }
         }
       }
@@ -163,7 +220,28 @@ const MarketOverview = () => {
       y: {
         ticks: {
           callback: function(value) {
-            return formatPercent(value);
+            return formatCurrency(value);
+          }
+        }
+      }
+    },
+  };
+  
+  const technicalChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: false,
+      },
+    },
+    scales: {
+      y: {
+        min: -1,
+        max: 1,
+        ticks: {
+          callback: function(value) {
+            return value === 1 ? 'Bullish' : value === -1 ? 'Bearish' : 'Neutral';
           }
         }
       }
@@ -228,30 +306,48 @@ const MarketOverview = () => {
         </Typography>
         
         <Grid container spacing={2} sx={{ mb: 3 }}>
-          {marketData.market_indices.map((index) => (
-            <Grid item xs={12} sm={6} md={4} key={index.symbol}>
-              <Card variant="outlined">
+          {marketData.market_summary.map((stock) => (
+            <Grid item xs={12} sm={6} md={4} key={stock.symbol}>
+              <Card 
+                variant="outlined"
+                sx={{ 
+                  cursor: 'pointer',
+                  '&:hover': { bgcolor: 'action.hover' }
+                }}
+                onClick={() => setSelectedSymbol(stock.symbol)}
+              >
                 <CardContent>
                   <Typography variant="h6" component="div">
-                    {index.name}
+                    {stock.symbol}
                   </Typography>
                   <Typography variant="h4" component="div" sx={{ my: 1 }}>
-                    {formatNumber(index.price)}
+                    {formatCurrency(stock.current_price)}
                   </Typography>
                   <Box display="flex" alignItems="center">
-                    {index.change_percent >= 0 ? (
+                    {stock.avg_change_percent >= 0 ? (
                       <TrendingUpIcon fontSize="small" color="success" />
                     ) : (
                       <TrendingDownIcon fontSize="small" color="error" />
                     )}
                     <Typography
                       variant="body1"
-                      color={index.change_percent >= 0 ? 'success.main' : 'error.main'}
+                      color={stock.avg_change_percent >= 0 ? 'success.main' : 'error.main'}
                       sx={{ ml: 0.5 }}
                     >
-                      {formatNumber(index.change)} ({formatPercent(index.change_percent)})
+                      {formatPercent(stock.avg_change_percent)}
                     </Typography>
                   </Box>
+                  <Typography variant="body2" color="text.secondary">
+                    Volume: {formatNumber(stock.total_volume)}
+                  </Typography>
+                  {stock.macd_signal && (
+                    <Chip
+                      size="small"
+                      label={stock.macd_signal}
+                      color={stock.macd_signal === 'bullish' ? 'success' : 'error'}
+                      sx={{ mt: 1 }}
+                    />
+                  )}
                 </CardContent>
               </Card>
             </Grid>
@@ -260,71 +356,63 @@ const MarketOverview = () => {
         
         <Box height={300} mb={4}>
           <Typography variant="h6" gutterBottom>
-            Market Performance
+            Price Ranges
           </Typography>
           <Bar data={getMarketChartData()} options={chartOptions} />
         </Box>
         
-        <Typography variant="subtitle1" gutterBottom>
-          Market Breadth
+        {selectedSymbol && technicalSignals && (
+          <Box>
+            <Typography variant="h6" gutterBottom>
+              Technical Analysis: {selectedSymbol}
         </Typography>
-        <Grid container spacing={2} sx={{ mb: 3 }}>
-          <Grid item xs={4}>
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={8}>
+                <Box height={300}>
+                  <Bar data={getTechnicalChartData()} options={technicalChartOptions} />
+                </Box>
+              </Grid>
+              <Grid item xs={12} md={4}>
             <Card variant="outlined">
               <CardContent>
+                    <Typography variant="subtitle1" gutterBottom>
+                      Signal Summary
+                </Typography>
+                    <Box display="flex" alignItems="center" mb={1}>
+                      <SignalIcon color={technicalSignals.recommendation === 'buy' ? 'success' : technicalSignals.recommendation === 'sell' ? 'error' : 'default'} />
+                      <Typography variant="body1" sx={{ ml: 1 }}>
+                        Recommendation: {technicalSignals.recommendation.toUpperCase()}
+                </Typography>
+                    </Box>
                 <Typography variant="body2" color="text.secondary">
-                  Advancing
+                      Trend: {technicalSignals.trend_direction}
                 </Typography>
-                <Typography variant="h6" color="success.main">
-                  {formatNumber(marketData.market_breadth.advancing)}
+                    <Typography variant="body2" color="text.secondary">
+                      Strength: {technicalSignals.trend_strength}
                 </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={4}>
-            <Card variant="outlined">
-              <CardContent>
+                    <Box mt={2}>
                 <Typography variant="body2" color="text.secondary">
-                  Declining
+                        Signal Strength:
                 </Typography>
-                <Typography variant="h6" color="error.main">
-                  {formatNumber(marketData.market_breadth.declining)}
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={4}>
-            <Card variant="outlined">
-              <CardContent>
-                <Typography variant="body2" color="text.secondary">
-                  Unchanged
-                </Typography>
-                <Typography variant="h6">
-                  {formatNumber(marketData.market_breadth.unchanged)}
-                </Typography>
+                      <Box display="flex" justifyContent="space-between" mt={1}>
+                        <Chip
+                          size="small"
+                          label={`Bullish: ${technicalSignals.signal_strength.bullish}`}
+                          color="success"
+                        />
+                        <Chip
+                          size="small"
+                          label={`Bearish: ${technicalSignals.signal_strength.bearish}`}
+                          color="error"
+                        />
+                      </Box>
+                    </Box>
               </CardContent>
             </Card>
           </Grid>
         </Grid>
-        
-        <Typography variant="subtitle1" gutterBottom>
-          Trading Volume
-        </Typography>
-        <Card variant="outlined" sx={{ mb: 3 }}>
-          <CardContent>
-            <Typography variant="h6">
-              {marketData.trading_volume.value} {marketData.trading_volume.unit}
-            </Typography>
-            <Box display="flex" alignItems="center">
-              <Typography
-                variant="body2"
-                color={marketData.trading_volume.change_percent >= 0 ? 'success.main' : 'error.main'}
-              >
-                {formatPercent(marketData.trading_volume.change_percent)} from previous day
-              </Typography>
             </Box>
-          </CardContent>
-        </Card>
+        )}
       </Paper>
       
       <Paper sx={{ p: 2 }}>

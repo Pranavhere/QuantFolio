@@ -21,14 +21,14 @@ import { useAuth } from '../../contexts/AuthContext';
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, loading, error } = useAuth();
+  const { login, error } = useAuth();
   const from = location.state?.from?.pathname || '/dashboard';
 
   // Form state
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [localError, setLocalError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   // Form validation
   const [emailError, setEmailError] = useState('');
@@ -71,17 +71,14 @@ const Login = () => {
       return;
     }
     
-    // Clear previous errors
-    setLocalError('');
-    
-    // Attempt login
-    const result = await login(email, password);
-    
-    if (result.success) {
-      // Navigate to the page the user was trying to access, or dashboard
+    try {
+      setLoading(true);
+      await login({ email, password });
       navigate(from, { replace: true });
-    } else {
-      setLocalError(result.error || 'Failed to login');
+    } catch (error) {
+      console.error('Login error:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -102,9 +99,9 @@ const Login = () => {
   return (
     <Box component="form" onSubmit={handleSubmit} noValidate sx={{ width: '100%' }}>
       {/* Error message */}
-      {(error || localError) && (
+      {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
-          {error || localError}
+          {error}
         </Alert>
       )}
       
@@ -189,15 +186,19 @@ const Login = () => {
         )}
       </Button>
       
-      {/* Forgot password link */}
+      {/* Register link */}
       <Box textAlign="center">
-        <Typography
-          variant="body2"
-          color="primary"
-          sx={{ cursor: 'pointer', textDecoration: 'underline' }}
-          onClick={() => navigate('/auth/forgot-password')}
-        >
-          Forgot password?
+        <Typography variant="body2">
+          Don't have an account?{' '}
+          <Typography
+            component="span"
+            variant="body2"
+            color="primary"
+            sx={{ cursor: 'pointer', textDecoration: 'underline' }}
+            onClick={() => navigate('/auth/register')}
+          >
+            Sign Up
+          </Typography>
         </Typography>
       </Box>
     </Box>

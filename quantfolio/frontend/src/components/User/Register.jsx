@@ -9,8 +9,6 @@ import {
   IconButton,
   Alert,
   CircularProgress,
-  Divider,
-  Grid,
 } from '@mui/material';
 import {
   Visibility,
@@ -23,7 +21,7 @@ import { useAuth } from '../../contexts/AuthContext';
 
 const Register = () => {
   const navigate = useNavigate();
-  const { register: registerUser, loading, error } = useAuth();
+  const { register } = useAuth();
 
   // Form state
   const [fullName, setFullName] = useState('');
@@ -32,8 +30,8 @@ const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [localError, setLocalError] = useState('');
-  const [registrationSuccess, setRegistrationSuccess] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   // Form validation
   const [fullNameError, setFullNameError] = useState('');
@@ -122,24 +120,19 @@ const Register = () => {
       return;
     }
     
-    // Clear previous errors
-    setLocalError('');
-    
-    // Attempt registration
-    const result = await registerUser({
-      email,
-      password,
-      full_name: fullName,
-    });
-    
-    if (result.success) {
-      setRegistrationSuccess(true);
-      // Redirect to login after a short delay
-      setTimeout(() => {
-        navigate('/auth/login');
-      }, 3000);
-    } else {
-      setLocalError(result.error || 'Failed to register');
+    try {
+      setLoading(true);
+      setError('');
+      await register({
+        email,
+        password,
+        full_name: fullName,
+      });
+      navigate('/auth/login');
+    } catch (error) {
+      setError(error.response?.data?.error || 'Registration failed');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -172,23 +165,12 @@ const Register = () => {
     setShowConfirmPassword(!showConfirmPassword);
   };
 
-  if (registrationSuccess) {
-    return (
-      <Box sx={{ width: '100%', textAlign: 'center' }}>
-        <Alert severity="success" sx={{ mb: 2 }}>
-          Registration successful! You will be redirected to the login page shortly.
-        </Alert>
-        <CircularProgress size={24} sx={{ mt: 2 }} />
-      </Box>
-    );
-  }
-
   return (
     <Box component="form" onSubmit={handleSubmit} noValidate sx={{ width: '100%' }}>
       {/* Error message */}
-      {(error || localError) && (
+      {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
-          {error || localError}
+          {error}
         </Alert>
       )}
       
@@ -329,10 +311,21 @@ const Register = () => {
         )}
       </Button>
       
-      {/* Terms and Conditions */}
-      <Typography variant="body2" color="text.secondary" align="center">
-        By signing up, you agree to our Terms of Service and Privacy Policy.
-      </Typography>
+      {/* Login link */}
+      <Box textAlign="center">
+        <Typography variant="body2">
+          Already have an account?{' '}
+          <Typography
+            component="span"
+            variant="body2"
+            color="primary"
+            sx={{ cursor: 'pointer', textDecoration: 'underline' }}
+            onClick={() => navigate('/auth/login')}
+          >
+            Sign In
+          </Typography>
+        </Typography>
+      </Box>
     </Box>
   );
 };

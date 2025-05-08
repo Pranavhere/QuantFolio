@@ -1,18 +1,43 @@
 const express = require('express');
-const dotenv = require('dotenv');
+const mongoose = require('mongoose');
 const cors = require('cors');
+const dotenv = require('dotenv');
 const errorHandler = require('./middleware/error');
 const { initializeKafka } = require('./services/kafka.service');
 const { initializeTimescaleDB } = require('./services/timescale.service');
 
-// Load env vars
+// Load environment variables
 dotenv.config();
 
-// Import database connection
-const connectDB = require('./config/db');
+// Import routes
+const authRoutes = require('./src/routes/auth.routes');
+const portfolioRoutes = require('./src/routes/portfolio.routes');
 
-// Connect to database
-connectDB();
+const app = express();
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// MongoDB connection
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/quantfolio', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+.then(() => console.log('Connected to MongoDB'))
+.catch((error) => console.error('MongoDB connection error:', error));
+
+// Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/portfolios', portfolioRoutes);
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({
+    error: 'Something went wrong!'
+  });
+});
 
 // Initialize services
 const initializeServices = async () => {
@@ -27,23 +52,12 @@ const initializeServices = async () => {
 };
 
 // Route files
-const authRoutes = require('./routes/auth.routes');
 const newsRoutes = require('./routes/news.routes');
 const dataRoutes = require('./routes/data.routes');
-const portfolioRoutes = require('./routes/portfolio.routes');
 const assetRoutes = require('./routes/asset.routes');
 const tradeRoutes = require('./routes/trade.routes');
 
-const app = express();
-
-// Body parser
-app.use(express.json());
-
-// Enable CORS
-app.use(cors());
-
 // Mount routers
-app.use('/api/auth', authRoutes);
 app.use('/api/news', newsRoutes);
 app.use('/api/data', dataRoutes);
 app.use('/api/portfolio', portfolioRoutes);

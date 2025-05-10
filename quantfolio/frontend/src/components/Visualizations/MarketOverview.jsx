@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
+// Import API
+import { dataAPI } from '../../api/api';
 import {
   Box,
   Grid,
@@ -52,8 +54,7 @@ ChartJS.register(
   Legend
 );
 
-// Import API
-import { dataAPI } from '../../api/api';
+
 
 const MarketOverview = () => {
   const navigate = useNavigate();

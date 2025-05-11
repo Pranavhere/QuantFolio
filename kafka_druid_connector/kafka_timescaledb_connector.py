@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+
 """
 Kafka to TimescaleDB Connector Script
 

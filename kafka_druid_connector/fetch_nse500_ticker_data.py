@@ -99,7 +99,7 @@ def main():
     """Main function to fetch and produce NSE data."""
     try:
         # Initialize Kite Connect client
-    client = KiteClient()
+        client = KiteClient()
     
         # Get NSE instruments
         instruments = client.get_instruments(exchange='NSE')

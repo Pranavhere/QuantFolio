@@ -18,7 +18,7 @@ import {
   CircularProgress
 } from '@mui/material';
 import { Add as AddIcon, Delete as DeleteIcon, Edit as EditIcon } from '@mui/icons-material';
-import { portfolioAPI } from '../services/api';
+import { portfolioAPI } from '../api/api';
 
 const PortfolioList = () => {
   const navigate = useNavigate();
